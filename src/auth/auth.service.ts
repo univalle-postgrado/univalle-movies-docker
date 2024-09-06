@@ -59,4 +59,20 @@ export class AuthService {
 
     throw new UnauthorizedException(`El login o contraseña no son válidos`);
   }
+
+  verifyToken(token: string): any {
+    try {
+      return this.jwtService.verify(token, {
+        secret: this.configService.get<string>('JWT_SECRET'),
+      });
+    } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        throw new UnauthorizedException('Refresh token ha expirado');
+      } else if (error.name === 'JsonWebTokenError') {
+        throw new UnauthorizedException('Refresh token inválido');
+      } else {
+        throw new UnauthorizedException('La validación del Refresh token ha fallado');
+      }
+    }
+  }
 }

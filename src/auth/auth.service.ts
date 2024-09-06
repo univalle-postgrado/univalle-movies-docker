@@ -27,7 +27,7 @@ export class AuthService {
     return this.usersRepository.save(newUser);
   }
 
-  async login(loginDto: LoginDto): Promise<any> {
+  async token(loginDto: LoginDto): Promise<any> {
     const user = await this.usersRepository.findOne({
       select: {
         id: true,

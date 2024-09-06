@@ -23,6 +23,12 @@ export class Category {
     @UpdateDateColumn({ type: 'timestamp without time zone', select: false, nullable: true })
     updated_at: Date;
 
+    @Column({ name: 'created_by', type: 'integer', nullable: true })
+    createdBy: number;
+
+    @Column({ name: 'updated_by', type: 'integer', nullable: true })
+    updatedBy: number;
+
     @OneToMany(() => Movie, movie => movie.category)
     movies: Movie[]
 }

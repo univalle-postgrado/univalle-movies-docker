@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, HttpCode, Res, ParseBoolPipe, DefaultValuePipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, HttpCode, Request, Res, ParseBoolPipe, DefaultValuePipe } from '@nestjs/common';
 import { Response } from 'express';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
@@ -9,8 +9,8 @@ export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Post()
-  create(@Body() createCategoryDto: CreateCategoryDto) {
-    return this.categoriesService.create(createCategoryDto);
+  create(@Body() createCategoryDto: CreateCategoryDto, @Request() request) {
+    return this.categoriesService.create(createCategoryDto, request.user.id);
   }
 
   @Get()
@@ -32,8 +32,8 @@ export class CategoriesController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: number, @Body() updateCategoryDto: UpdateCategoryDto) {
-    return this.categoriesService.update(id, updateCategoryDto);
+  update(@Param('id') id: number, @Body() updateCategoryDto: UpdateCategoryDto, @Request() request) {
+    return this.categoriesService.update(id, updateCategoryDto, request.user.id);
   }
 
   @Delete(':id')

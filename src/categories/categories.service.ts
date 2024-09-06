@@ -36,7 +36,7 @@ export class CategoriesService {
     return category;
   }
 
-  async create(createCategoryDto: CreateCategoryDto): Promise<Category> {
+  async create(createCategoryDto: CreateCategoryDto, user_id: number): Promise<Category> {
     const existsCategory = await this.categoriesRepository.exists({
       where: { 
         title: createCategoryDto.title
@@ -45,7 +45,7 @@ export class CategoriesService {
     if (existsCategory) {
       throw new ConflictException('El título ya está registrado');
     }
-    return this.categoriesRepository.save({ ...createCategoryDto });
+    return this.categoriesRepository.save({ ...createCategoryDto, createdBy: user_id });
   }
 
   async findAll(page = 1, limit = 10, relations = false): Promise<{ data: Category[]; total: number; page: number; limit: number }>  {
@@ -80,7 +80,7 @@ export class CategoriesService {
     return this.findOneOrFail(id, relations);
   }
 
-  async update(id: number, updateCategoryDto: UpdateCategoryDto): Promise<Category> {
+  async update(id: number, updateCategoryDto: UpdateCategoryDto, user_id: number): Promise<Category> {
     const category = await this.findOneOrFail(id);
 
     if (updateCategoryDto.title != null) {
@@ -92,6 +92,7 @@ export class CategoriesService {
     if (updateCategoryDto.enabled != null) {
       category.enabled = updateCategoryDto.enabled;
     }
+    category.updatedBy = user_id;
 
     return this.categoriesRepository.save(category);
   }

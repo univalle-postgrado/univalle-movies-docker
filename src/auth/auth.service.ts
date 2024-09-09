@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,21 +17,33 @@ export class AuthService {
     private usersRepository: Repository<User>,
   ) {}
 
-  async register(createUserDto: CreateUserDto): Promise<any> {
+  async register (createUserDto: CreateUserDto): Promise<any> {
+    // verificamos si existe un usuario con el mismo login o email
+    const existingUser = await this.usersRepository.exists({
+      where: [
+        { login: createUserDto.login },
+        { email: createUserDto.email },
+      ],
+    })
+    if (existingUser) {
+      throw new UnprocessableEntityException('Ya existe un usuario con el mismo login o contraseña. Por favor, intente con otro.');
+    }
+
     const hashedPassword = await bcrypt.hash(this.configService.get<string>('ENCRYPTION_KEY') + createUserDto.password, 10);
-    const newUser = this.usersRepository.create({  
+    const newUser = this.usersRepository.create({
       ...createUserDto,
       password: hashedPassword,
-      last_access: new Date()
+      enabled: true
     });
     return this.usersRepository.save(newUser);
   }
 
-  async token(loginDto: LoginDto): Promise<any> {
+  async createToken (loginDto: LoginDto): Promise<any> {
     const user = await this.usersRepository.findOne({
       select: {
         id: true,
         login: true,
+        role: true,
         password: true,
         fullname: true,
         email: true,
@@ -41,23 +53,26 @@ export class AuthService {
         login: loginDto.login
       }
     });
+
     if (user) {
       const isPasswordMatch = await bcrypt.compare(this.configService.get<string>('ENCRYPTION_KEY') + loginDto.password, user.password);
       if (isPasswordMatch) {
         const payload = {
-          ...user,
-          password: undefined,
-        };
-
+          sub: user.id,
+          login: user.login,
+          fullname: user.fullname,
+          email: user.email,
+          role: user.role,
+        }
         return {
           'access_token': this.jwtService.sign(payload, {
             expiresIn: this.configService.get('JWT_EXPIRES_IN'),
           })
-        }
+        };
       }
     }
 
-    throw new UnauthorizedException(`El login o contraseña no son válidos`);
+    throw new UnauthorizedException('El login o contraseña no son válidos');
   }
 
   verifyToken(token: string): any {
@@ -67,11 +82,11 @@ export class AuthService {
       });
     } catch (error) {
       if (error.name === 'TokenExpiredError') {
-        throw new UnauthorizedException('Refresh token ha expirado');
+        throw new UnauthorizedException('Token ha expirado');
       } else if (error.name === 'JsonWebTokenError') {
-        throw new UnauthorizedException('Refresh token inválido');
+        throw new UnauthorizedException('Token inválido');
       } else {
-        throw new UnauthorizedException('La validación del Refresh token ha fallado');
+        throw new UnauthorizedException('La validación del token ha fallado');
       }
     }
   }

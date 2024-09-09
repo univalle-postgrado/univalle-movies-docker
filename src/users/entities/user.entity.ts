@@ -1,5 +1,10 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from "typeorm";
 
+export enum UserRoleEnum {
+  ADMIN = 'ADMIN',
+  USER = 'USER'
+}
+
 @Entity('users')
 @Unique(['login'])
 @Unique(['email'])
@@ -21,6 +26,9 @@ export class User {
 
   @Column({ length: 30, nullable: true })
   phone: string;
+
+  @Column()
+  role: UserRoleEnum;
 
   @Column({ type: 'timestamp without time zone', nullable: true })
   last_access: Date | null;

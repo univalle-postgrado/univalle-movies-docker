@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, HttpCode, Res, DefaultValuePipe, ParseBoolPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, HttpCode, Request, Res, DefaultValuePipe, ParseBoolPipe } from '@nestjs/common';
 import { Response } from 'express';
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
@@ -9,8 +9,8 @@ export class MoviesController {
   constructor(private readonly moviesService: MoviesService) {}
 
   @Post()
-  create(@Body() createMovieDto: CreateMovieDto) {
-    return this.moviesService.create(createMovieDto);
+  create(@Body() createMovieDto: CreateMovieDto, @Request() request) {
+    return this.moviesService.create(createMovieDto, request.user.sub, request.user.role);
   }
 
   @Get()
@@ -31,14 +31,14 @@ export class MoviesController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateMovieDto: UpdateMovieDto) {
-    return this.moviesService.update(+id, updateMovieDto);
+  update(@Param('id') id: string, @Body() updateMovieDto: UpdateMovieDto, @Request() request) {
+    return this.moviesService.update(+id, updateMovieDto, request.user.sub, request.user.role);
   }
 
   @Delete(':id')
   @HttpCode(204)
-  async remove(@Param('id') id: number, @Res() response: Response) {
-    await this.moviesService.remove(id);
+  async remove(@Param('id') id: number, @Res() response: Response, @Request() request) {
+    await this.moviesService.remove(id, request.user.role);
     response.sendStatus(204);
   }
 

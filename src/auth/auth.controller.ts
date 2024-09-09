@@ -18,6 +18,6 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('token')
   createToken(@Body() loginDto: LoginDto) {
-    return this.authService.token(loginDto);
+    return this.authService.createToken(loginDto);
   }
 }

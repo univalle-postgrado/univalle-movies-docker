@@ -10,7 +10,7 @@ export class CategoriesController {
 
   @Post()
   create(@Body() createCategoryDto: CreateCategoryDto, @Request() request) {
-    return this.categoriesService.create(createCategoryDto, request.user.id);
+    return this.categoriesService.create(createCategoryDto, request.user.sub, request.user.role);
   }
 
   @Get()
@@ -19,7 +19,6 @@ export class CategoriesController {
     @Query('limit') limit: number,
     @Query('relations', new DefaultValuePipe(false), ParseBoolPipe) relations: boolean
   ) {
-    console.log(relations)
     return this.categoriesService.findAll(page, limit, relations);
   }
 
@@ -33,7 +32,7 @@ export class CategoriesController {
 
   @Patch(':id')
   update(@Param('id') id: number, @Body() updateCategoryDto: UpdateCategoryDto, @Request() request) {
-    return this.categoriesService.update(id, updateCategoryDto, request.user.id);
+    return this.categoriesService.update(id, updateCategoryDto, request.user.sub, request.user.role);
   }
 
   @Delete(':id')
@@ -41,9 +40,10 @@ export class CategoriesController {
   async remove(
     @Param('id') id: number,
     @Query('cascade', new DefaultValuePipe(false), ParseBoolPipe) cascade: boolean,
-    @Res() response: Response
+    @Res() response: Response,
+    @Request() request
   ) {
-    await this.categoriesService.remove(id, cascade);
+    await this.categoriesService.remove(id, cascade, request.user.role);
     response.sendStatus(204);
   }
 

@@ -1,10 +1,11 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from './entities/category.entity';
 import { Movie } from 'src/movies/entities/movie.entity';
 import { Repository } from 'typeorm';
+import { UserRoleEnum } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class CategoriesService {
@@ -36,7 +37,11 @@ export class CategoriesService {
     return category;
   }
 
-  async create(createCategoryDto: CreateCategoryDto, user_id: number): Promise<Category> {
+  async create(createCategoryDto: CreateCategoryDto, user_id: number, role: UserRoleEnum): Promise<Category> {
+    if (role != UserRoleEnum.ADMIN) {
+      throw new ForbiddenException('Usted no está autorizado para crear categorías');
+    }
+
     const existsCategory = await this.categoriesRepository.exists({
       where: { 
         title: createCategoryDto.title
@@ -80,7 +85,11 @@ export class CategoriesService {
     return this.findOneOrFail(id, relations);
   }
 
-  async update(id: number, updateCategoryDto: UpdateCategoryDto, user_id: number): Promise<Category> {
+  async update(id: number, updateCategoryDto: UpdateCategoryDto, user_id: number, role: UserRoleEnum): Promise<Category> {
+    if (role != UserRoleEnum.ADMIN) {
+      throw new ForbiddenException('Usted no está autorizado para modificar categorías');
+    }
+
     const category = await this.findOneOrFail(id);
 
     if (updateCategoryDto.title != null) {
@@ -97,7 +106,11 @@ export class CategoriesService {
     return this.categoriesRepository.save(category);
   }
 
-  async remove(id: number, cascade: boolean) {
+  async remove(id: number, cascade: boolean, role: UserRoleEnum) {
+    if (role != UserRoleEnum.ADMIN) {
+      throw new ForbiddenException('Usted no está autorizado para eliminar categorías');
+    }
+
     const category = await this.findOneOrFail(id);
     if (cascade) {
       await this.moviesRepository.delete({ category });

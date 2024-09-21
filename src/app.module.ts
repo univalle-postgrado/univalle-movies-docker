@@ -26,7 +26,10 @@ import { UsersModule } from './users/users.module';
         entities: [__dirname + '/**/entities/*.entity{.ts,.js}'],
         synchronize: configService.get<boolean>('DB_SYNCHRONIZE'),
         extra: {
-          timezone: 'America/La_Paz'
+          timezone: 'America/La_Paz',
+          "ssl": {
+            "rejectUnauthorized": false
+          }
         },
         logging: true,
       }),

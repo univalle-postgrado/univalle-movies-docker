@@ -1,3 +1,29 @@
+CREATE TABLE categories (
+  id serial PRIMARY KEY,
+  title character varying(30) NOT NULL,
+  description character varying(180),
+  enabled boolean DEFAULT false,
+  created_at timestamp without time zone DEFAULT NOW(),
+  updated_at timestamp without time zone,
+  created_by integer,
+  updated_by integer
+);
+
+CREATE TABLE movies (
+  id serial PRIMARY KEY,
+  title character varying(120) NOT NULL,
+  synopsis text NOT NULL,
+  director character varying(60),
+  release_date date NOT NULL,
+  poster_url character varying(255) NOT NULL,
+  rating numeric(3, 1) NOT NULL,
+  created_at timestamp without time zone DEFAULT NOW(),
+  updated_at timestamp without time zone,
+  created_by integer,
+  updated_by integer,
+  category_id integer NOT NULL REFERENCES categories(id)
+);
+
 -- Inserción de categorías
 INSERT INTO categories (title, description, enabled, created_by) VALUES
 ('Acción', 'Películas de alta intensidad', true, 1),

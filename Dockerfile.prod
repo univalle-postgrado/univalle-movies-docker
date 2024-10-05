@@ -1,0 +1,22 @@
+# Multi-stage build para optimizar la imagen final
+FROM node:20-alpine AS builder
+
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+
+RUN npm install
+
+FROM node:20-alpine
+WORKDIR /usr/src/app
+COPY --from=builder /usr/src/app/node_modules ./node_modules
+COPY . .
+
+# Optimizamos la imagen final, eliminando elementos innecesarios
+RUN npm prune --production
+
+RUN npm install -g @nestjs/cli
+
+EXPOSE 3000
+
+CMD ["npm", "start"]
